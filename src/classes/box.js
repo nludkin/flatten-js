@@ -248,6 +248,44 @@ export class Box {
     }
 
     /**
+     * Return true if rect contains shape: no point of shape lies outside of the rect
+     * @param {Shape} shape - test shape
+     * @returns {boolean}
+     */
+    contains(shape) {
+        if (shape instanceof Flatten.Point) {
+            return shape.x >= this.xmin && shape.x <= this.xmax &&
+                   shape.y >= this.ymin && shape.y <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Box) {
+            return shape.xmin >= this.xmin && shape.xmax <= this.xmax &&
+                   shape.ymin >= this.ymin && shape.ymax <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Segment) {
+            return shape.ps.x >= this.xmin && shape.ps.x <= this.xmax &&
+                   shape.ps.y >= this.xmin && shape.ps.y <= this.ymax &&
+                   shape.pe.x >= this.xmin && shape.pe.x <= this.xmax &&
+                   shape.pe.y >= this.xmin && shape.pe.y <= this.ymax;
+        }
+
+        // if (shape instanceof Flatten.Arc) {
+        //     return this.intersect(shape).length === 0 &&
+        //         Flatten.Utils.LE(shape.start.distanceTo(this.center)[0], this.r) &&
+        //         Flatten.Utils.LE(shape.end.distanceTo(this.center)[0], this.r);
+        // }
+
+        // if (shape instanceof Flatten.Circle) {
+        //     return this.intersect(shape).length === 0 &&
+        //         Flatten.Utils.LE(shape.r, this.r) &&
+        //         Flatten.Utils.LE(shape.center.distanceTo(this.center)[0], this.r);
+        // }
+
+        /* TODO: box, polygon */
+    }
+
+    /**
      * Return string to draw circle in svg
      * @param {Object} attrs - an object with attributes of svg rectangle element,
      * like "stroke", "strokeWidth", "fill" <br/>

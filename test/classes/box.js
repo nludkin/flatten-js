@@ -6,7 +6,7 @@
 import { expect } from 'chai';
 import Flatten from '../../index';
 
-import {Box, point} from '../../index';
+import {Box, point, Segment} from '../../index';
 
 describe('#Flatten.Box', function() {
     it('May create new instance of Box', function () {
@@ -40,6 +40,45 @@ describe('#Flatten.Box', function() {
         expect(svg.search("class")).to.not.equal(-1);
     });
 
+    describe('#Flatten.Box.contains', function() {Segment
+        it('Can correctly identify when it contains points', function() {
+            let box = new Box(0,0,100,100);
+            expect(box.contains(point(0,0))).to.equal(true);
+            expect(box.contains(point(100,100))).to.equal(true);
+            expect(box.contains(point(0,100))).to.equal(true);
+            expect(box.contains(point(100,0))).to.equal(true);
+            expect(box.contains(point(50,50))).to.equal(true);
+
+            expect(box.contains(point(150,100))).to.equal(false);
+            expect(box.contains(point(150,150))).to.equal(false);
+            expect(box.contains(point(-10,100))).to.equal(false);
+            expect(box.contains(point(100,-10))).to.equal(false);
+        });
+
+        it('Can correctly identify when it contains a box', function() {
+            let box = new Box(0,0,100,100);
+            expect(box.contains(new Box(0,0,100,100))).to.equal(true);
+            expect(box.contains(new Box(10,10,50,50))).to.equal(true);
+
+            expect(box.contains(new Box(-10,0,100,100))).to.equal(false);
+            expect(box.contains(new Box(0,-10,100,100))).to.equal(false);
+            expect(box.contains(new Box(0,0,110,100))).to.equal(false);
+            expect(box.contains(new Box(0,0,100,110))).to.equal(false);
+
+            expect(box.contains(new Box(-100,-100,200,200))).to.equal(false);
+        });        
+        it('Can correctly identify when it contains a segment', function() {
+            let box = new Box(0,0,100,100);
+            expect(box.contains(new Segment(point(0,0),point(100,100)))).to.equal(true);
+            expect(box.contains(new Segment(point(10,10),point(90,90)))).to.equal(true);
+
+            expect(box.contains(new Segment(point(-10,10),point(100,100)))).to.equal(false);
+            expect(box.contains(new Segment(point(10,-10),point(100,100)))).to.equal(false);
+            expect(box.contains(new Segment(point(10,10),point(110,100)))).to.equal(false);
+            expect(box.contains(new Segment(point(10,10),point(100,110)))).to.equal(false);
+            expect(box.contains(new Segment(point(110,110),point(120,120)))).to.equal(false);
+        });   
+    });
     describe('#Flatten.Box.DistanceTo', function() {
         describe('Can measure distance between box and point', function() {
             it('Has point to the top right of the box', function() {
