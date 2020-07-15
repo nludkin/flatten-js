@@ -45,6 +45,17 @@ export class Circle {
     }
 
     /**
+     * Return new point transformed by affine transformation matrix m
+     * @param {Matrix} m - affine transformation matrix (a,b,c,d,tx,ty)
+     * @returns {Point}
+     */
+    transform(m) {
+        const newCenter = m.transform([this.pc.x, this.pc.y]);
+        const newRadius = ((m.a + m.d) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
+        return new Circle(new Flatten.Point(newCenter), newRadius);
+    }
+
+    /**
      * Return new cloned instance of circle
      * @returns {Circle}
      */

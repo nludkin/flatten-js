@@ -6,7 +6,7 @@
 import { expect } from 'chai';
 import Flatten from '../../index';
 
-import {Box} from '../../index';
+import {Box, point} from '../../index';
 
 describe('#Flatten.Box', function() {
     it('May create new instance of Box', function () {
@@ -38,6 +38,139 @@ describe('#Flatten.Box', function() {
         expect(svg.search("fill")).to.not.equal(-1);
         expect(svg.search("id")).to.not.equal(-1);
         expect(svg.search("class")).to.not.equal(-1);
-    })
+    });
+
+    describe('#Flatten.Box.DistanceTo', function() {
+        describe('Can measure distance between box and point', function() {
+            it('Has point to the top right of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(200, 100);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(196.9771560359221);
+                expect(shortest_segment.ps).to.deep.equal({x:20,y:20})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the right of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(200, 10);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(180);
+                expect(shortest_segment.ps).to.deep.equal({x:20,y:10})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the bottom right of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(200, -100);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(196.9771560359221);
+                expect(shortest_segment.ps).to.deep.equal({x:20,y:-20})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the underneath the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(10, -100);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(80);
+                expect(shortest_segment.ps).to.deep.equal({x:10,y:-20})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the bottom left of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(-100, -100);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(113.13708498984761);
+                expect(shortest_segment.ps).to.deep.equal({x:-20,y:-20})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the left of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(-100, 10);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(80);
+                expect(shortest_segment.ps).to.deep.equal({x:-20,y:10})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+            it('Has point to the top left of the box', function() {
+                let box = new Box(-20,-20, 20, 20);
+                let pt = point(-100, 80);
+
+                let [dist, shortest_segment] = box.distanceTo(pt);
+                expect(dist).to.equal(100);
+                expect(shortest_segment.ps).to.deep.equal({x:-20,y:20})
+                expect(shortest_segment.pe).to.deep.equal(pt);
+            });
+       });
+
+
+
+
+
+
+        xit('Can measure distance between box and circle', function() {
+            let c1 = circle(point(200,200), 50);
+            let c2 = circle(point(200,230), 100);
+
+            let [dist, shortest_segment] = c1.distanceTo(c2);
+            expect(dist).to.equal(20);
+            expect(shortest_segment.ps).to.deep.equal({"x": 200, "y": 150});
+            expect(shortest_segment.pe).to.deep.equal({"x": 200, "y": 130});
+        });
+        xit('Can measure distance between box and line', function() {
+            let c = circle(point(200,200), 50);
+            let l = line(point(200,130), vector(0,1));
+
+            let [dist, shortest_segment] = c.distanceTo(l);
+            expect(dist).to.equal(20);
+            expect(shortest_segment.ps).to.deep.equal({"x": 200, "y": 150});
+            expect(shortest_segment.pe).to.deep.equal({"x": 200, "y": 130});
+        });
+        xit('Can measure distance between box and segment', function() {
+            let c = circle(point(200,200), 50);
+            let seg = segment(point(200,130), point(220,130));
+
+            let [dist, shortest_segment] = c.distanceTo(seg);
+            expect(dist).to.equal(20);
+            expect(shortest_segment.ps).to.deep.equal({"x": 200, "y": 150});
+            expect(shortest_segment.pe).to.deep.equal({"x": 200, "y": 130});
+        });
+        xit('Can measure distance between box and arc', function() {
+            let c = circle(point(200,200), 50);
+            let a = circle(point(200,100), 20).toArc();
+
+            let [dist, shortest_segment] = c.distanceTo(a);
+            expect(dist).to.equal(30);
+            expect(shortest_segment.ps).to.deep.equal({"x": 200, "y": 150});
+            expect(shortest_segment.pe).to.deep.equal({"x": 200, "y": 120});
+        });
+        xit('Can measure distance between box and polygon', function () {
+            let points = [
+                point(100, 20),
+                point(250, 75),
+                point(350, 75),
+                point(300, 270),
+                point(170, 200),
+                point(120, 350),
+                point(70, 120)
+            ];
+
+            let poly = new Polygon();
+            poly.addFace(points);
+            poly.addFace([circle(point(175,150), 30).toArc()]);
+
+            let c = circle(point(300,25), 25);
+
+            let [dist, shortest_segment] = c.distanceTo(poly);
+
+            expect(dist).to.equal(25);
+            expect(shortest_segment.ps).to.deep.equal({"x": 300, "y": 50});
+            expect(shortest_segment.pe).to.deep.equal({"x": 300, "y": 75});
+        })
+    });
 });
 

@@ -262,12 +262,30 @@ export class Distance {
     }
 
     /**
-     * Calculate distance and shortest segment between two circles
+     * Calculate distance and shortest segment between circle and a line
      * @param circle
      * @param line
      * @returns {Number | Segment} - distance and shortest segment
      */
     static circle2line(circle, line) {
+        let ip = circle.intersect(line);
+        if (ip.length > 0) {
+            return [0, new Flatten.Segment(ip[0], ip[0])];
+        }
+
+        let [dist_from_center, shortest_segment_from_center] = Distance.point2line(circle.center, line);
+        let [dist, shortest_segment] = Distance.point2circle(shortest_segment_from_center.end, circle);
+        shortest_segment = shortest_segment.reverse();
+        return [dist, shortest_segment];
+    }
+
+    /**
+     * Calculate distance and shortest segment between circle and a box
+     * @param circle
+     * @param box
+     * @returns {Number | Segment} - distance and shortest segment
+     */
+    static circle2box(circle, line) {
         let ip = circle.intersect(line);
         if (ip.length > 0) {
             return [0, new Flatten.Segment(ip[0], ip[0])];
@@ -403,6 +421,43 @@ export class Distance {
 
             return dist_and_segment[0];
         }
+    }
+
+    /**
+     * Calculate distance and shortest segment between point and box
+     * @param point
+     * @param box
+     * @returns {Number | Segment} - distance and shortest segment
+     */
+    static point2box(point, box) {
+        const cx = Math.max(Math.min(point.x, box.xmax), box.xmin);
+        const cy = Math.max(Math.min(point.y, box.ymax), box.ymin);
+        const distance = Math.abs(Math.sqrt((point.x-cx)*(point.x-cx) + (point.y-cy)*(point.y-cy)));
+
+        var x,y;
+        if (point.x < box.xmin) {
+            // Point to the left of box
+            x = box.xmin;
+        } else if (point.x > box.xmax) {
+            // Point to the right of the box
+            x = box.xmax;
+        } else {
+            // Point is inline with box edge 
+            x = point.x;
+        }
+
+        if (point.y < box.ymin) {
+            // Point above box
+            y = box.ymin;
+        } else if (point.y > box.ymax) {
+            // Point under box
+            y = box.ymax;
+        } else {
+            // Point is inline with box edge 
+            y = point.y;
+        }
+
+        return [distance, new Flatten.Segment(new Flatten.Point(x,y), point)];
     }
 
     /**

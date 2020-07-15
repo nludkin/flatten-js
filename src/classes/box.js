@@ -202,6 +202,52 @@ export class Box {
     }
 
     /**
+     * Calculate distance and shortest segment from box to shape and return array [distance, shortest segment]
+     * @param {Shape} shape Shape of the one of supported types Point, Line, Circle, Segment, Arc, Polygon or Planar Set
+     * @returns {number} distance from box to shape
+     * @returns {Segment} shortest segment between box and shape (started at circle, ended at shape)
+
+     */
+    distanceTo(shape) {
+        if (shape instanceof Flatten.Point) {
+            let [distance, shortest_segment] = Flatten.Distance.point2box(shape, this);
+            return [distance, shortest_segment];
+        }
+
+        if (shape instanceof Flatten.Circle) {
+            let [distance, shortest_segment] = Flatten.Distance.circle2box(this, shape);
+            return [distance, shortest_segment];
+        }
+
+        // if (shape instanceof Flatten.Line) {
+        //     let [distance, shortest_segment] = Flatten.Distance.circle2line(this, shape);
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Segment) {
+        //     let [distance, shortest_segment] = Flatten.Distance.segment2circle(shape, this);
+        //     shortest_segment = shortest_segment.reverse();
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Arc) {
+        //     let [distance, shortest_segment] = Flatten.Distance.arc2circle(shape, this);
+        //     shortest_segment = shortest_segment.reverse();
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Polygon) {
+        //     let [distance, shortest_segment] = Flatten.Distance.shape2polygon(this, shape);
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.PlanarSet) {
+        //     let [dist, shortest_segment] = Flatten.Distance.shape2planarSet(this, shape);
+        //     return [dist, shortest_segment];
+        // }
+    }
+
+    /**
      * Return string to draw circle in svg
      * @param {Object} attrs - an object with attributes of svg rectangle element,
      * like "stroke", "strokeWidth", "fill" <br/>
