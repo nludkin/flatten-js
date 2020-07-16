@@ -270,19 +270,23 @@ export class Box {
                    shape.pe.y >= this.ymin && shape.pe.y <= this.ymax;
         }
 
-        // if (shape instanceof Flatten.Arc) {
-        //     return this.intersect(shape).length === 0 &&
-        //         Flatten.Utils.LE(shape.start.distanceTo(this.center)[0], this.r) &&
-        //         Flatten.Utils.LE(shape.end.distanceTo(this.center)[0], this.r);
-        // }
-
-        if (shape instanceof Flatten.Circle) {
-            return ((shape.pc.x - shape.radius) >= this.xmin) && ((shape.pc.x + shape.radius) <= this.xmax) &&
-                   ((shape.pc.y - shape.radius) >= this.ymin) && ((shape.pc.y + shape.radius) <= this.ymax);
-
+        if (shape instanceof Flatten.Arc) {
+            const boundingBox = shape.box;
+            return boundingBox.xmin >= this.xmin && boundingBox.xmax <= this.xmax &&
+                   boundingBox.ymin >= this.ymin && boundingBox.ymax <= this.ymax;
         }
 
-        /* TODO: box, polygon */
+        if (shape instanceof Flatten.Circle) {
+            const cminx = shape.pc.x - shape.r;
+            const cmaxx = shape.pc.x + shape.r;
+            const cminy = shape.pc.y - shape.r;
+            const cmaxy = shape.pc.y + shape.r;
+
+            return (cminx >= this.xmin) && (cmaxx <= this.xmax) &&
+                   (cminy >= this.ymin) && (cmaxy <= this.ymax);
+        }
+
+        /* TODO: polygon */
     }
 
     /**

@@ -6,7 +6,7 @@
 import { expect } from 'chai';
 import Flatten from '../../index';
 
-import {Point, Circle, Box, point, Segment} from '../../index';
+import {arc, Point, Circle, Box, point, Segment} from '../../index';
 
 describe('#Flatten.Box', function() {
     it('May create new instance of Box', function () {
@@ -80,10 +80,24 @@ describe('#Flatten.Box', function() {
         });
         it('Can correctly identify when it contains a circle', function() {
             let box = new Box(0,0,100,100);
-            expect(box.contains(new Circle(new Point(50,50),50))).to.equal(true);
-        });
+            expect(box.contains(new Circle(point(50,50),50))).to.equal(true);
+            expect(box.contains(new Circle(point(20,40),10))).to.equal(true);
 
-        
+            expect(box.contains(new Circle(point(80,80),40))).to.equal(false);
+            expect(box.contains(new Circle(point(-10,-10),30))).to.equal(false);
+        });
+        it('Can correctly identify when it contains an arc', function() {
+            let box = new Box(0,0,100,100);
+
+            expect(box.contains(arc(point(50,50), 30, 0, Math.PI*2))).to.equal(true);
+
+            expect(box.contains(arc(point(100,50), 30,  0 * Math.PI/180, 90 * Math.PI/180, true))).to.equal(false);
+            expect(box.contains(arc(point(100,50), 30,  90 * Math.PI/180, 180 * Math.PI/180, true))).to.equal(true);
+            expect(box.contains(arc(point(100,50), 30,  180 * Math.PI/180, 270 * Math.PI/180, true))).to.equal(true);
+            expect(box.contains(arc(point(100,50), 30,  270 * Math.PI/180, 360 * Math.PI/180, true))).to.equal(false);
+
+            expect(box.contains(arc(point(100,50), 30, 0, Math.PI*2))).to.equal(false);
+        });
     });
     describe('#Flatten.Box.DistanceTo', function() {
         describe('Can measure distance between box and point', function() {
