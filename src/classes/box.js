@@ -265,9 +265,9 @@ export class Box {
 
         if (shape instanceof Flatten.Segment) {
             return shape.ps.x >= this.xmin && shape.ps.x <= this.xmax &&
-                   shape.ps.y >= this.xmin && shape.ps.y <= this.ymax &&
+                   shape.ps.y >= this.ymin && shape.ps.y <= this.ymax &&
                    shape.pe.x >= this.xmin && shape.pe.x <= this.xmax &&
-                   shape.pe.y >= this.xmin && shape.pe.y <= this.ymax;
+                   shape.pe.y >= this.ymin && shape.pe.y <= this.ymax;
         }
 
         // if (shape instanceof Flatten.Arc) {
