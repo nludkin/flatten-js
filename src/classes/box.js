@@ -276,11 +276,11 @@ export class Box {
         //         Flatten.Utils.LE(shape.end.distanceTo(this.center)[0], this.r);
         // }
 
-        // if (shape instanceof Flatten.Circle) {
-        //     return this.intersect(shape).length === 0 &&
-        //         Flatten.Utils.LE(shape.r, this.r) &&
-        //         Flatten.Utils.LE(shape.center.distanceTo(this.center)[0], this.r);
-        // }
+        if (shape instanceof Flatten.Circle) {
+            return ((shape.pc.x - shape.radius) >= this.xmin) && ((shape.pc.x + shape.radius) <= this.xmax) &&
+                   ((shape.pc.y - shape.radius) >= this.ymin) && ((shape.pc.y + shape.radius) <= this.ymax);
+
+        }
 
         /* TODO: box, polygon */
     }

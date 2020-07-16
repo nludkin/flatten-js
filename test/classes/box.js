@@ -6,7 +6,7 @@
 import { expect } from 'chai';
 import Flatten from '../../index';
 
-import {Box, point, Segment} from '../../index';
+import {Point, Circle, Box, point, Segment} from '../../index';
 
 describe('#Flatten.Box', function() {
     it('May create new instance of Box', function () {
@@ -77,7 +77,13 @@ describe('#Flatten.Box', function() {
             expect(box.contains(new Segment(point(10,10),point(110,100)))).to.equal(false);
             expect(box.contains(new Segment(point(10,10),point(100,110)))).to.equal(false);
             expect(box.contains(new Segment(point(110,110),point(120,120)))).to.equal(false);
-        });   
+        });
+        it('Can correctly identify when it contains a circle', function() {
+            let box = new Box(0,0,100,100);
+            expect(box.contains(new Circle(new Point(50,50),50))).to.equal(true);
+        });
+
+        
     });
     describe('#Flatten.Box.DistanceTo', function() {
         describe('Can measure distance between box and point', function() {
