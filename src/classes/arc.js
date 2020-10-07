@@ -155,6 +155,15 @@ export class Arc {
         return box;
     }
 
+    get normal() {
+        const l = new Flatten.Vector(this.pc, this.middle());
+        if (this.counterClockwise == Flatten.CCW) {
+            return l.normalize().invert();
+        } else {
+            return l.normalize();
+        }
+    }
+
     /**
      * Returns true if arc contains point, false otherwise
      * @param {Point} pt - point to test
@@ -184,10 +193,10 @@ export class Arc {
      */
     split(pt) {
         if (this.start.equalTo(pt))
-            return [null, this.clone()];
+            return [this.clone()];
 
         if (this.end.equalTo(pt))
-            return [this.clone(), null];
+            return [this.clone()];
 
         let angle = new Flatten.Vector(this.pc, pt).slope;
 

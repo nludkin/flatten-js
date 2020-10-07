@@ -125,6 +125,10 @@ export class Segment {
         )
     }
 
+    get normal() {
+        return new Flatten.Vector(this.start, this.end).rotate90CCW().normalize();
+    } 
+
     /**
      * Returns true if equals to query segment, false otherwise
      * @param {Seg} seg - query segment
@@ -257,10 +261,10 @@ export class Segment {
      */
     split(pt) {
         if (this.start.equalTo(pt))
-            return [null, this.clone()];
+            return [this.clone()];
 
         if (this.end.equalTo(pt))
-            return [this.clone(), null];
+            return [this.clone()];
 
         return [
             new Flatten.Segment(this.start, pt),

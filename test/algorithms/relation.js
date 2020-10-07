@@ -177,7 +177,7 @@ describe('#Algorithms.Relation', function() {
             expect(inside(c2, c1)).to.be.true;
         });
     });
-    describe('#Algorithms.Relation.Polygoon2Polygon', function() {
+    describe('#Algorithms.Relation.Polygon2Polygon', function() {
         it('May calculate relations. Disjoint case', () => {
             let p1 = new Polygon(box(0,0,50,100).toSegments());
             let p2 = new Polygon(box(100,50,150,150).toSegments());
