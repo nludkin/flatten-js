@@ -17,7 +17,7 @@ export class Arc {
      * @param {number} r - arc radius
      * @param {number} startAngle - start angle in radians from 0 to 2*PI
      * @param {number} endAngle - end angle in radians from 0 to 2*PI
-     * @param {boolean} counterClockwise - arc direction, true - clockwise, false - counter clockwise
+     * @param {boolean} counterClockwise - arc direction, false - clockwise, true - counter clockwise
      */
     constructor(...args) {
         /**
@@ -88,6 +88,7 @@ export class Arc {
         if (Flatten.Utils.EQ(Math.abs(this.startAngle - this.endAngle), Flatten.PIx2)) {
             return Flatten.PIx2;
         }
+
         let sweep;
         if (this.counterClockwise) {
             sweep = Flatten.Utils.GT(this.endAngle, this.startAngle) ?
@@ -155,6 +156,15 @@ export class Arc {
         return box;
     }
 
+    get normal() {
+        const l = new Flatten.Vector(this.pc, this.middle());
+        if (this.counterClockwise == Flatten.CCW) {
+            return l.normalize().invert();
+        } else {
+            return l.normalize();
+        }
+    }
+
     /**
      * Returns true if arc contains point, false otherwise
      * @param {Point} pt - point to test
@@ -184,10 +194,10 @@ export class Arc {
      */
     split(pt) {
         if (this.start.equalTo(pt))
-            return [null, this.clone()];
+            return [this.clone()];
 
         if (this.end.equalTo(pt))
-            return [this.clone(), null];
+            return [this.clone()];
 
         let angle = new Flatten.Vector(this.pc, pt).slope;
 
@@ -480,6 +490,31 @@ export class Arc {
         return Object.assign({}, this, {name: "arc"});
     }
 
+    svgAttrs(attrs) {
+        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
+        let sweepFlag = this.counterClockwise ? "1" : "0";
+
+        let {stroke, strokeWidth, fill, id, className} = attrs;
+
+        const obj = {
+            d: {
+                m: `M${this.start.x},${this.start.y}`,
+                a: `A${this.r},${this.r} 0 ${largeArcFlag},${sweepFlag} ${this.end.x},${this.end.y}`
+            },
+            stroke: stroke || "black",
+            'stroke-width': strokeWidth || 1,
+            fill: fill || "none",
+        }
+
+        if (id && id.length > 0) {
+            obj['id'] = id;
+        }
+        if (className && className.length > 0) {
+            obj['class'] = className;
+        }
+
+        return obj;
+    }
     /**
      * Return string to draw arc in svg
      * @param {Object} attrs - an object with attributes of svg path element,
@@ -488,21 +523,33 @@ export class Arc {
      * @returns {string}
      */
     svg(attrs = {}) {
-        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
-        let sweepFlag = this.counterClockwise ? "1" : "0";
-        let {stroke, strokeWidth, fill, id, className} = attrs;
-        // let rest_str = Object.keys(rest).reduce( (acc, key) => acc += ` ${key}="${rest[key]}"`, "");
-        let id_str = (id && id.length > 0) ? `id="${id}"` : "";
-        let class_str = (className && className.length > 0) ? `class="${className}"` : "";
-
+        let path = '';
         if (Flatten.Utils.EQ(this.sweep, 2 * Math.PI)) {
             let circle = new Flatten.Circle(this.pc, this.r);
             return circle.svg(attrs);
         } else {
-            return `\n<path d="M${this.start.x},${this.start.y}
-                             A${this.r},${this.r} 0 ${largeArcFlag},${sweepFlag} ${this.end.x},${this.end.y}"
-                    stroke="${stroke || "black"}" stroke-width="${strokeWidth || 1}" fill="${fill || "none"}" ${id_str} ${class_str} />`
+            const processedAttrs = this.svgAttrs(attrs);
+            path+='<path ';
+            Object.keys(processedAttrs).forEach((key) => {
+                let str;
+                const value = processedAttrs[key];
+                if (value instanceof Object) {
+                    let o = [];
+                    Object.keys(value).forEach((subkey) => {
+                        o.push(`${value[subkey]}`);
+                    });
+                    str = o.join(" ");
+                } else {
+                    console.log("Processed attr: " + key + " value: "+ processedAttrs[key]);
+                    str = `${processedAttrs[key]}`;
+                }
+
+                path+= `${key}="${str}" `;
+            });
+            path+= `/>`;
         }
+
+        return path;
     }
 
 };
