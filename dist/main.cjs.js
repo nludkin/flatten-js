@@ -4855,6 +4855,17 @@ class Circle {
     }
 
     /**
+     * Return new point transformed by affine transformation matrix m
+     * @param {Matrix} m - affine transformation matrix (a,b,c,d,tx,ty)
+     * @returns {Point}
+     */
+    transform(m) {
+        const newCenter = m.transform([this.pc.x, this.pc.y]);
+        const newRadius = ((m.a + m.d) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
+        return new Circle(new Flatten.Point(newCenter), newRadius);
+    }
+
+    /**
      * Return new cloned instance of circle
      * @returns {Circle}
      */
@@ -5746,6 +5757,94 @@ class Box {
             new Flatten.Segment(pts[2], pts[3]),
             new Flatten.Segment(pts[3], pts[0])
         ];
+    }
+
+    /**
+     * Calculate distance and shortest segment from box to shape and return array [distance, shortest segment]
+     * @param {Shape} shape Shape of the one of supported types Point, Line, Circle, Segment, Arc, Polygon or Planar Set
+     * @returns {number} distance from box to shape
+     * @returns {Segment} shortest segment between box and shape (started at circle, ended at shape)
+
+     */
+    distanceTo(shape) {
+        if (shape instanceof Flatten.Point) {
+            let [distance, shortest_segment] = Flatten.Distance.point2box(shape, this);
+            return [distance, shortest_segment];
+        }
+
+        if (shape instanceof Flatten.Circle) {
+            let [distance, shortest_segment] = Flatten.Distance.circle2box(this, shape);
+            return [distance, shortest_segment];
+        }
+
+        // if (shape instanceof Flatten.Line) {
+        //     let [distance, shortest_segment] = Flatten.Distance.circle2line(this, shape);
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Segment) {
+        //     let [distance, shortest_segment] = Flatten.Distance.segment2circle(shape, this);
+        //     shortest_segment = shortest_segment.reverse();
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Arc) {
+        //     let [distance, shortest_segment] = Flatten.Distance.arc2circle(shape, this);
+        //     shortest_segment = shortest_segment.reverse();
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.Polygon) {
+        //     let [distance, shortest_segment] = Flatten.Distance.shape2polygon(this, shape);
+        //     return [distance, shortest_segment];
+        // }
+
+        // if (shape instanceof Flatten.PlanarSet) {
+        //     let [dist, shortest_segment] = Flatten.Distance.shape2planarSet(this, shape);
+        //     return [dist, shortest_segment];
+        // }
+    }
+
+    /**
+     * Return true if rect contains shape: no point of shape lies outside of the rect
+     * @param {Shape} shape - test shape
+     * @returns {boolean}
+     */
+    contains(shape) {
+        if (shape instanceof Flatten.Point) {
+            return shape.x >= this.xmin && shape.x <= this.xmax &&
+                   shape.y >= this.ymin && shape.y <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Box) {
+            return shape.xmin >= this.xmin && shape.xmax <= this.xmax &&
+                   shape.ymin >= this.ymin && shape.ymax <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Segment) {
+            return shape.ps.x >= this.xmin && shape.ps.x <= this.xmax &&
+                   shape.ps.y >= this.ymin && shape.ps.y <= this.ymax &&
+                   shape.pe.x >= this.xmin && shape.pe.x <= this.xmax &&
+                   shape.pe.y >= this.ymin && shape.pe.y <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Arc) {
+            const boundingBox = shape.box;
+            return boundingBox.xmin >= this.xmin && boundingBox.xmax <= this.xmax &&
+                   boundingBox.ymin >= this.ymin && boundingBox.ymax <= this.ymax;
+        }
+
+        if (shape instanceof Flatten.Circle) {
+            const cminx = shape.pc.x - shape.r;
+            const cmaxx = shape.pc.x + shape.r;
+            const cminy = shape.pc.y - shape.r;
+            const cmaxy = shape.pc.y + shape.r;
+
+            return (cminx >= this.xmin) && (cmaxx <= this.xmax) &&
+                   (cminy >= this.ymin) && (cmaxy <= this.ymax);
+        }
+
+        /* TODO: polygon */
     }
 
     /**
@@ -7084,6 +7183,22 @@ class Polygon {
     }
 
     /**
+     * Return middle point of the polygon
+     * @returns {Point}
+     */
+    middle() {
+        let xsum = 0;
+        let ysum = 0;
+        this.vertices.forEach((vertex) => {
+            xsum += vertex.x;
+            ysum += vertex.y;
+        });
+
+        const len = this.vertices.length;
+        return new Flatten.Point(xsum/len, ysum/len);
+    }
+
+    /**
      * Return distance and shortest segment between polygon and other shape as array [distance, shortest_segment]
      * @param {Shape} shape Shape of one of the types Point, Circle, Line, Segment, Arc or Polygon
      * @returns {Number | Segment}
@@ -7500,12 +7615,30 @@ class Distance {
     }
 
     /**
-     * Calculate distance and shortest segment between two circles
+     * Calculate distance and shortest segment between circle and a line
      * @param circle
      * @param line
      * @returns {Number | Segment} - distance and shortest segment
      */
     static circle2line(circle, line) {
+        let ip = circle.intersect(line);
+        if (ip.length > 0) {
+            return [0, new Flatten.Segment(ip[0], ip[0])];
+        }
+
+        let [dist_from_center, shortest_segment_from_center] = Distance.point2line(circle.center, line);
+        let [dist, shortest_segment] = Distance.point2circle(shortest_segment_from_center.end, circle);
+        shortest_segment = shortest_segment.reverse();
+        return [dist, shortest_segment];
+    }
+
+    /**
+     * Calculate distance and shortest segment between circle and a box
+     * @param circle
+     * @param box
+     * @returns {Number | Segment} - distance and shortest segment
+     */
+    static circle2box(circle, line) {
         let ip = circle.intersect(line);
         if (ip.length > 0) {
             return [0, new Flatten.Segment(ip[0], ip[0])];
@@ -7641,6 +7774,43 @@ class Distance {
 
             return dist_and_segment[0];
         }
+    }
+
+    /**
+     * Calculate distance and shortest segment between point and box
+     * @param point
+     * @param box
+     * @returns {Number | Segment} - distance and shortest segment
+     */
+    static point2box(point, box) {
+        const cx = Math.max(Math.min(point.x, box.xmax), box.xmin);
+        const cy = Math.max(Math.min(point.y, box.ymax), box.ymin);
+        const distance = Math.abs(Math.sqrt((point.x-cx)*(point.x-cx) + (point.y-cy)*(point.y-cy)));
+
+        var x,y;
+        if (point.x < box.xmin) {
+            // Point to the left of box
+            x = box.xmin;
+        } else if (point.x > box.xmax) {
+            // Point to the right of the box
+            x = box.xmax;
+        } else {
+            // Point is inline with box edge 
+            x = point.x;
+        }
+
+        if (point.y < box.ymin) {
+            // Point above box
+            y = box.ymin;
+        } else if (point.y > box.ymax) {
+            // Point under box
+            y = box.ymax;
+        } else {
+            // Point is inline with box edge 
+            y = point.y;
+        }
+
+        return [distance, new Flatten.Segment(new Flatten.Point(x,y), point)];
     }
 
     /**

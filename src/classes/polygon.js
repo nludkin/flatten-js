@@ -375,6 +375,22 @@ export class Polygon {
     }
 
     /**
+     * Return middle point of the polygon
+     * @returns {Point}
+     */
+    middle() {
+        let xsum = 0
+        let ysum = 0;
+        this.vertices.forEach((vertex) => {
+            xsum += vertex.x;
+            ysum += vertex.y;
+        });
+
+        const len = this.vertices.length;
+        return new Flatten.Point(xsum/len, ysum/len);
+    }
+
+    /**
      * Return distance and shortest segment between polygon and other shape as array [distance, shortest_segment]
      * @param {Shape} shape Shape of one of the types Point, Circle, Line, Segment, Arc or Polygon
      * @returns {Number | Segment}

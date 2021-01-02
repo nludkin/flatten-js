@@ -170,6 +170,7 @@ declare namespace Flatten {
 
         // public methods
         clone(): Box;
+        contains(shape: Shape): boolean;
         not_intersect(box: Box): boolean;
         intersect(box: Box): boolean;
         merge(box: Box): Box;
