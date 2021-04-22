@@ -1,10 +1,10 @@
 'use strict';
 
 import { expect } from 'chai';
-import Flatten from '../../index';
 
 import {Matrix} from '../../index';
 import {matrix,point} from '../../index';
+import { Circle } from '../../src/classes/circle';
 
 describe('#Flatten.Matrix', function() {
     it('May create new instance of Matrix', function () {
@@ -72,5 +72,57 @@ describe('#Flatten.Matrix', function() {
         let m = matrix().scale(5,10);
         let vector = [1,1];
         expect(m.transform(vector)).to.deep.equal([5,10])
+    });
+
+    describe('Can manipulate a Circle', function() {
+        it('Flips in the y direction', function () {
+            let circle = new Circle(point(10,10), 5);
+            let matrix = new Matrix()
+                .translate(0,0)
+                .scale(1, -1);
+            let newCircle = circle.transform(matrix);
+
+            expect(newCircle.pc.x).to.equal(10);
+            expect(newCircle.pc.y).to.equal(-10);
+            expect(newCircle.r).to.equal(5);
+        });
+
+        it('Flips and scales by 2 in the x and y direction', function () {
+            let circle = new Circle(point(10,10), 5);
+            let matrix = new Matrix()
+                .translate(0,0)
+                .scale(2, -2);
+            let newCircle = circle.transform(matrix);
+
+            expect(newCircle.pc.x).to.equal(20);
+            expect(newCircle.pc.y).to.equal(-20);
+            expect(newCircle.r).to.equal(10);
+        });        
+    });
+
+    describe('Can manipulate an Arc', function() {
+        it('Flips in the y direction', function () {
+            let circle = new Arc(point(10,10), 5);
+            let matrix = new Matrix()
+                .translate(0,0)
+                .scale(1, -1);
+            let newCircle = circle.transform(matrix);
+
+            expect(newCircle.pc.x).to.equal(10);
+            expect(newCircle.pc.y).to.equal(-10);
+            expect(newCircle.r).to.equal(5);
+        });
+
+        // it('Flips and scales by 2 in the x and y direction', function () {
+        //     let circle = new Circle(point(10,10), 5);
+        //     let matrix = new Matrix()
+        //         .translate(0,0)
+        //         .scale(2, -2);
+        //     let newCircle = circle.transform(matrix);
+
+        //     expect(newCircle.pc.x).to.equal(20);
+        //     expect(newCircle.pc.y).to.equal(-20);
+        //     expect(newCircle.r).to.equal(10);
+        // });        
     });
 });

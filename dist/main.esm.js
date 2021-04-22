@@ -29,6 +29,7 @@ const OVERLAP_SAME = 1;
 const OVERLAP_OPPOSITE = 2;
 
 var Constants = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     CCW: CCW,
     CW: CW,
     ORIENTATION: ORIENTATION,
@@ -107,6 +108,7 @@ function LE(x, y) {
 }
 
 var Utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     setTolerance: setTolerance,
     getTolerance: getTolerance,
     DECIMALS: DECIMALS,
@@ -146,7 +148,8 @@ class Errors {
 }
 
 var errors = /*#__PURE__*/Object.freeze({
-    default: Errors
+    __proto__: null,
+    'default': Errors
 });
 
 let Flatten = {
@@ -960,6 +963,7 @@ function removeNotRelevantNotIntersectedFaces(polygon, notIntersectedFaces, op, 
 }
 
 var BooleanOperations = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     BOOLEAN_UNION: BOOLEAN_UNION,
     BOOLEAN_INTERSECT: BOOLEAN_INTERSECT,
     BOOLEAN_SUBTRACT: BOOLEAN_SUBTRACT,
@@ -2499,8 +2503,6 @@ function relateShape2Polygon(shape, polygon) {
             case Flatten.OUTSIDE:
                 denim.B2E.push(pt);
                 break;
-            default:
-                break;
         }
     }
 
@@ -2536,6 +2538,7 @@ function relatePolygon2Polygon(polygon1, polygon2) {
 }
 
 var Relations = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     equal: equal,
     intersect: intersect$1,
     touch: touch,
@@ -4218,6 +4221,10 @@ class Segment {
         )
     }
 
+    get normal() {
+        return new Flatten.Vector(this.start, this.end).rotate90CCW().normalize();
+    } 
+
     /**
      * Returns true if equals to query segment, false otherwise
      * @param {Seg} seg - query segment
@@ -4350,10 +4357,10 @@ class Segment {
      */
     split(pt) {
         if (this.start.equalTo(pt))
-            return [null, this.clone()];
+            return [this.clone()];
 
         if (this.end.equalTo(pt))
-            return [this.clone(), null];
+            return [this.clone()];
 
         return [
             new Flatten.Segment(this.start, pt),
@@ -4846,8 +4853,6 @@ class Circle {
             if (r !== undefined) this.r = r;
             return;
         }
-
-        throw Flatten.Errors.ILLEGAL_PARAMETERS;
     }
 
     /**
@@ -4857,7 +4862,7 @@ class Circle {
      */
     transform(m) {
         const newCenter = m.transform([this.pc.x, this.pc.y]);
-        const newRadius = ((m.a + m.d) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
+        const newRadius = ((Math.abs(m.a) + Math.abs(m.d)) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
         return new Circle(new Flatten.Point(newCenter), newRadius);
     }
 
@@ -5058,7 +5063,7 @@ class Arc {
      * @param {number} r - arc radius
      * @param {number} startAngle - start angle in radians from 0 to 2*PI
      * @param {number} endAngle - end angle in radians from 0 to 2*PI
-     * @param {boolean} counterClockwise - arc direction, true - clockwise, false - counter clockwise
+     * @param {boolean} counterClockwise - arc direction, false - clockwise, true - counter clockwise
      */
     constructor(...args) {
         /**
@@ -5107,8 +5112,6 @@ class Arc {
             if (counterClockwise !== undefined) this.counterClockwise = counterClockwise;
             return;
         }
-
-        throw Flatten.Errors.ILLEGAL_PARAMETERS;
     }
 
     /**
@@ -5129,6 +5132,7 @@ class Arc {
         if (Flatten.Utils.EQ(Math.abs(this.startAngle - this.endAngle), Flatten.PIx2)) {
             return Flatten.PIx2;
         }
+
         let sweep;
         if (this.counterClockwise) {
             sweep = Flatten.Utils.GT(this.endAngle, this.startAngle) ?
@@ -5196,6 +5200,15 @@ class Arc {
         return box;
     }
 
+    get normal() {
+        const l = new Flatten.Vector(this.pc, this.middle());
+        if (this.counterClockwise == Flatten.CCW) {
+            return l.normalize().invert();
+        } else {
+            return l.normalize();
+        }
+    }
+
     /**
      * Returns true if arc contains point, false otherwise
      * @param {Point} pt - point to test
@@ -5225,10 +5238,10 @@ class Arc {
      */
     split(pt) {
         if (this.start.equalTo(pt))
-            return [null, this.clone()];
+            return [this.clone()];
 
         if (this.end.equalTo(pt))
-            return [this.clone(), null];
+            return [this.clone()];
 
         let angle = new Flatten.Vector(this.pc, pt).slope;
 
@@ -5521,6 +5534,31 @@ class Arc {
         return Object.assign({}, this, {name: "arc"});
     }
 
+    svgAttrs(attrs) {
+        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
+        let sweepFlag = this.counterClockwise ? "1" : "0";
+
+        let {stroke, strokeWidth, fill, id, className} = attrs;
+
+        const obj = {
+            d: {
+                m: `M${this.start.x},${this.start.y}`,
+                a: `A${this.r},${this.r} 0 ${largeArcFlag},${sweepFlag} ${this.end.x},${this.end.y}`
+            },
+            stroke: stroke || "black",
+            'stroke-width': strokeWidth || 1,
+            fill: fill || "none",
+        };
+
+        if (id && id.length > 0) {
+            obj['id'] = id;
+        }
+        if (className && className.length > 0) {
+            obj['class'] = className;
+        }
+
+        return obj;
+    }
     /**
      * Return string to draw arc in svg
      * @param {Object} attrs - an object with attributes of svg path element,
@@ -5529,21 +5567,33 @@ class Arc {
      * @returns {string}
      */
     svg(attrs = {}) {
-        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
-        let sweepFlag = this.counterClockwise ? "1" : "0";
-        let {stroke, strokeWidth, fill, id, className} = attrs;
-        // let rest_str = Object.keys(rest).reduce( (acc, key) => acc += ` ${key}="${rest[key]}"`, "");
-        let id_str = (id && id.length > 0) ? `id="${id}"` : "";
-        let class_str = (className && className.length > 0) ? `class="${className}"` : "";
-
+        let path = '';
         if (Flatten.Utils.EQ(this.sweep, 2 * Math.PI)) {
             let circle = new Flatten.Circle(this.pc, this.r);
             return circle.svg(attrs);
         } else {
-            return `\n<path d="M${this.start.x},${this.start.y}
-                             A${this.r},${this.r} 0 ${largeArcFlag},${sweepFlag} ${this.end.x},${this.end.y}"
-                    stroke="${stroke || "black"}" stroke-width="${strokeWidth || 1}" fill="${fill || "none"}" ${id_str} ${class_str} />`
+            const processedAttrs = this.svgAttrs(attrs);
+            path+='<path ';
+            Object.keys(processedAttrs).forEach((key) => {
+                let str;
+                const value = processedAttrs[key];
+                if (value instanceof Object) {
+                    let o = [];
+                    Object.keys(value).forEach((subkey) => {
+                        o.push(`${value[subkey]}`);
+                    });
+                    str = o.join(" ");
+                } else {
+                    console.log("Processed attr: " + key + " value: "+ processedAttrs[key]);
+                    str = `${processedAttrs[key]}`;
+                }
+
+                path+= `${key}="${str}" `;
+            });
+            path+= `/>`;
         }
+
+        return path;
     }
 
 }

@@ -51,7 +51,7 @@ export class Circle {
      */
     transform(m) {
         const newCenter = m.transform([this.pc.x, this.pc.y]);
-        const newRadius = ((m.a + m.d) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
+        const newRadius = (( Math.abs(m.a) + Math.abs(m.d)) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
         return new Circle(new Flatten.Point(newCenter), newRadius);
     }
 
