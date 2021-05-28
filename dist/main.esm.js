@@ -29,7 +29,6 @@ const OVERLAP_SAME = 1;
 const OVERLAP_OPPOSITE = 2;
 
 var Constants = /*#__PURE__*/Object.freeze({
-    __proto__: null,
     CCW: CCW,
     CW: CW,
     ORIENTATION: ORIENTATION,
@@ -108,7 +107,6 @@ function LE(x, y) {
 }
 
 var Utils = /*#__PURE__*/Object.freeze({
-    __proto__: null,
     setTolerance: setTolerance,
     getTolerance: getTolerance,
     DECIMALS: DECIMALS,
@@ -148,8 +146,7 @@ class Errors {
 }
 
 var errors = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Errors
+    default: Errors
 });
 
 let Flatten = {
@@ -963,7 +960,6 @@ function removeNotRelevantNotIntersectedFaces(polygon, notIntersectedFaces, op, 
 }
 
 var BooleanOperations = /*#__PURE__*/Object.freeze({
-    __proto__: null,
     BOOLEAN_UNION: BOOLEAN_UNION,
     BOOLEAN_INTERSECT: BOOLEAN_INTERSECT,
     BOOLEAN_SUBTRACT: BOOLEAN_SUBTRACT,
@@ -2503,6 +2499,8 @@ function relateShape2Polygon(shape, polygon) {
             case Flatten.OUTSIDE:
                 denim.B2E.push(pt);
                 break;
+            default:
+                break;
         }
     }
 
@@ -2538,7 +2536,6 @@ function relatePolygon2Polygon(polygon1, polygon2) {
 }
 
 var Relations = /*#__PURE__*/Object.freeze({
-    __proto__: null,
     equal: equal,
     intersect: intersect$1,
     touch: touch,
@@ -4853,6 +4850,8 @@ class Circle {
             if (r !== undefined) this.r = r;
             return;
         }
+
+        throw Flatten.Errors.ILLEGAL_PARAMETERS;
     }
 
     /**
@@ -4862,7 +4861,7 @@ class Circle {
      */
     transform(m) {
         const newCenter = m.transform([this.pc.x, this.pc.y]);
-        const newRadius = ((Math.abs(m.a) + Math.abs(m.d)) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
+        const newRadius = (( Math.abs(m.a) + Math.abs(m.d)) / 2) * this.r; // When scaled using differing x/y scales, this will need to be rendered as an ellipse 
         return new Circle(new Flatten.Point(newCenter), newRadius);
     }
 
@@ -5112,6 +5111,8 @@ class Arc {
             if (counterClockwise !== undefined) this.counterClockwise = counterClockwise;
             return;
         }
+
+        throw Flatten.Errors.ILLEGAL_PARAMETERS;
     }
 
     /**
@@ -5535,8 +5536,8 @@ class Arc {
     }
 
     svgAttrs(attrs) {
-        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
-        let sweepFlag = this.counterClockwise ? "1" : "0";
+        let largeArcFlag = !(this.sweep <= Math.PI) ? "0" : "1";
+        let sweepFlag = !this.counterClockwise ? "1" : "0";
 
         let {stroke, strokeWidth, fill, id, className} = attrs;
 
