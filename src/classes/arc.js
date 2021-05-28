@@ -491,8 +491,8 @@ export class Arc {
     }
 
     svgAttrs(attrs) {
-        let largeArcFlag = this.sweep <= Math.PI ? "0" : "1";
-        let sweepFlag = this.counterClockwise ? "1" : "0";
+        let largeArcFlag = !(this.sweep <= Math.PI) ? "0" : "1";
+        let sweepFlag = !this.counterClockwise ? "1" : "0";
 
         let {stroke, strokeWidth, fill, id, className} = attrs;
 
